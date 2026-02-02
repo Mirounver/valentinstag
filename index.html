@@ -35,7 +35,6 @@
       padding:32px 24px;
       box-shadow:0 20px 60px rgba(0,0,0,.08);
       position:relative;
-      overflow:hidden;
     }
 
     .topbar{
@@ -56,7 +55,6 @@
       margin:0 0 20px;
       text-align:center;
       color:var(--muted);
-      line-height:1.35;
     }
 
     .arena{
@@ -79,7 +77,6 @@
       font-weight:600;
       cursor:pointer;
       box-shadow:0 8px 18px rgba(0,0,0,.12);
-      -webkit-tap-highlight-color: transparent;
     }
 
     #yes{
@@ -92,9 +89,6 @@
       background:var(--no);
       color:white;
       position:absolute;
-      left: 56%;
-      top: 58%;
-      transform: translate(-50%,-50%);
     }
 
     .hint{
@@ -104,56 +98,30 @@
       color:var(--muted);
     }
 
-    /* Erfolgsscreen (Overlay) */
+    /* Erfolgsscreen */
     .success{
       display:none;
       position:absolute;
       inset:0;
       border-radius:20px;
-      background: rgba(0,0,0,.62);
+      background:
+        linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.45)),
+        url("mirodilay.png") center/cover no-repeat;
       color:white;
-      padding:22px 18px;
+      padding:36px 26px;
       text-align:center;
     }
 
-    .success-inner{
-      height:100%;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      gap:14px;
-    }
-
     .success h2{
-      margin:0;
+      margin-top:40px;
       font-size:30px;
-      letter-spacing:.2px;
     }
 
-    .success .text{
-      margin:0;
+    .success p{
       color:#e5e7eb;
       font-size:18px;
       line-height:1.4;
-    }
-
-    /* Bild groß, ohne Zuschneiden */
-    .success img{
-      display:block;
-      margin: 0 auto;
-      width: auto;
-      height: auto;
-      max-width: 95%;
-      max-height: 58vh;
-      border-radius:14px;
-      box-shadow:0 18px 40px rgba(0,0,0,.35);
-      object-fit: contain;
-      background: rgba(255,255,255,.04);
-    }
-
-    @media (max-width: 520px){
-      .success img{ max-height: 52vh; }
-      h1{ font-size:26px; }
+      margin-top:20px;
     }
   </style>
 </head>
@@ -173,17 +141,12 @@
       <button id="no">Nein</button>
 
       <div class="success" id="success">
-        <div class="success-inner">
-          <h2>Wir haben ein Date!!!</h2>
-
-          <img src="mirodilay.png" alt="Miro & Dilay">
-
-          <p class="text">
-            Super Askim benim, genau das hab ich erwartet.<br>
-            Ich habe um 19:30 Uhr reserviert in einem schönen Restaurant.<br>
-            Danach tatli yemeye gidiyoruz (nicht du, auch wenn du auch tatli bist).
-          </p>
-        </div>
+        <h2>Wir haben ein Date!!!</h2>
+        <p>
+          Super Askim benim, genau das hab ich erwartet.<br>
+          Ich habe um 19:30 Uhr reserviert in einem schönen Restaurant.<br>
+          Danach tatli yemeye gidiyoruz (nicht du, auch wenn du auch tatli bist).
+        </p>
       </div>
     </div>
 
@@ -191,91 +154,84 @@
   </div>
 
 <script>
-  // TIMER & SCORE
-  let startTime = Date.now();
-  let tries = 0;
-  const score = document.getElementById("score");
+/* =======================
+   TIMER & SCORE
+======================= */
+let startTime = Date.now();
+let tries = 0;
+const score = document.getElementById("score");
 
-  const timerId = setInterval(() => {
-    const sec = Math.floor((Date.now() - startTime) / 1000);
-    const m = String(Math.floor(sec / 60)).padStart(2,"0");
-    const s = String(sec % 60).padStart(2,"0");
-    score.textContent = `${m}:${s} · ${tries} Versuche`;
-  }, 500);
+setInterval(() => {
+  const sec = Math.floor((Date.now() - startTime) / 1000);
+  const m = String(Math.floor(sec / 60)).padStart(2,"0");
+  const s = String(sec % 60).padStart(2,"0");
+  score.textContent = `${m}:${s} · ${tries} Versuche`;
+}, 500);
 
-  // BUTTON LOGIK (Nur bei Klick/Touch auf NEIN passiert was)
-  const noTexts = [
-    "Nein",
-    "willst du dir das echt entgehen lassen",
-    "bitte Askim",
-    "ja okay, Mina darf mit",
-    "ich traurig werden",
-    "deine letzte Chance",
-    "der Button verschwindet danach",
-    "beim nächsten Mal wird die Reservierung automatisch storniert",
-    "sag jetzt Ja",
-    "Ich frag einfach nochmal: Ja?"
-  ];
+/* =======================
+   BUTTON LOGIK
+======================= */
+const noTexts = [
+  "Nein",
+  "willst du dir das echt entgehen lassen",
+  "bitte Askim",
+  "ja okay, Mina darf mit",
+  "ich traurig werden",
+  "deine letzte Chance",
+  "der Button verschwindet danach",
+  "beim nächsten Mal wird die Reservierung automatisch storniert",
+  "sag jetzt Ja",
+  "Ich frag einfach nochmal: Ja?"
+];
 
-  const hints = [
-    "Erwischt du ihn überhaupt?",
-    "Spoiler: „Ja“ wär eine gute Wahl"
-  ];
+const hints = [
+  "Erwischt du ihn überhaupt?",
+  "Spoiler: „Ja“ wär eine gute Wahl"
+];
 
-  const noBtn = document.getElementById("no");
-  const yesBtn = document.getElementById("yes");
-  const arena = document.getElementById("arena");
-  const hint = document.getElementById("hint");
-  const success = document.getElementById("success");
+const noBtn = document.getElementById("no");
+const yesBtn = document.getElementById("yes");
+const arena = document.getElementById("arena");
+const hint = document.getElementById("hint");
+const success = document.getElementById("success");
 
-  let scale = 1;
+let scale = 1;
 
-  function moveNoOnDemand(){
-    tries++;
+function moveNo(){
+  tries++;
 
-    // Easter Egg nach 10x "Nein"
-    if(tries >= 10){
-      noBtn.style.display = "none";
-      hint.textContent = "Okay, du hast gewonnen… aber sag trotzdem Ja";
-      yesBtn.style.transform = "scale(3)";
-      return;
-    }
-
-    noBtn.textContent = noTexts[tries % noTexts.length];
-    hint.textContent = hints[tries % hints.length];
-
-    // Ja wächst
-    scale += 0.15;
-    yesBtn.style.transform = `scale(${Math.min(scale,3)})`;
-
-    // Nein springt auf neue Position (aber nur nach Klick)
-    const maxX = arena.clientWidth - noBtn.offsetWidth - 10;
-    const maxY = arena.clientHeight - noBtn.offsetHeight - 10;
-
-    const x = Math.random() * Math.max(10, maxX);
-    const y = Math.random() * Math.max(10, maxY);
-
-    noBtn.style.left = x + "px";
-    noBtn.style.top = y + "px";
-    noBtn.style.transform = "translate(0,0)";
+  if(tries >= 10){
+    noBtn.style.display = "none";
+    hint.textContent = "Okay, du hast gewonnen… aber sag trotzdem Ja";
+    return;
   }
 
-  noBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    moveNoOnDemand();
-  });
+  noBtn.textContent = noTexts[tries % noTexts.length];
+  hint.textContent = hints[tries % hints.length];
 
-  noBtn.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    moveNoOnDemand();
-  }, {passive:false});
+  scale += 0.15;
+  yesBtn.style.transform = `scale(${Math.min(scale,3)})`;
 
-  // JA = ERFOLG (Hint ausblenden)
-  yesBtn.addEventListener("click", () => {
-    success.style.display = "block";
-    hint.style.display = "none";
-    clearInterval(timerId);
-  });
+  const maxX = arena.clientWidth - noBtn.offsetWidth - 10;
+  const maxY = arena.clientHeight - noBtn.offsetHeight - 10;
+
+  noBtn.style.left = Math.random() * maxX + "px";
+  noBtn.style.top = Math.random() * maxY + "px";
+}
+
+noBtn.addEventListener("mouseover", moveNo);
+noBtn.addEventListener("click", moveNo);
+noBtn.addEventListener("touchstart", e => {
+  e.preventDefault();
+  moveNo();
+},{passive:false});
+
+/* =======================
+   JA = ERFOLG
+======================= */
+yesBtn.addEventListener("click", () => {
+  success.style.display = "block";
+});
 </script>
 </body>
 </html>
