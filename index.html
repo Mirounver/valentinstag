@@ -35,6 +35,7 @@
       padding:32px 24px;
       box-shadow:0 20px 60px rgba(0,0,0,.08);
       position:relative;
+      overflow:hidden;
     }
 
     .topbar{
@@ -55,6 +56,7 @@
       margin:0 0 20px;
       text-align:center;
       color:var(--muted);
+      line-height:1.35;
     }
 
     .arena{
@@ -77,6 +79,7 @@
       font-weight:600;
       cursor:pointer;
       box-shadow:0 8px 18px rgba(0,0,0,.12);
+      -webkit-tap-highlight-color: transparent;
     }
 
     #yes{
@@ -89,6 +92,9 @@
       background:var(--no);
       color:white;
       position:absolute;
+      left: 56%;
+      top: 58%;
+      transform: translate(-50%,-50%);
     }
 
     .hint{
@@ -98,30 +104,56 @@
       color:var(--muted);
     }
 
-    /* Erfolgsscreen */
+    /* Erfolgsscreen (als Overlay) */
     .success{
       display:none;
       position:absolute;
       inset:0;
       border-radius:20px;
-      background:
-        linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.45)),
-        url("mirodilay.png") center/cover no-repeat;
+      background: rgba(0,0,0,.62);
       color:white;
-      padding:36px 26px;
+      padding:22px 18px;
       text-align:center;
     }
 
-    .success h2{
-      margin-top:40px;
-      font-size:30px;
+    .success-inner{
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:14px;
     }
 
-    .success p{
+    .success h2{
+      margin:0;
+      font-size:30px;
+      letter-spacing:.2px;
+    }
+
+    .success .text{
+      margin:0;
       color:#e5e7eb;
       font-size:18px;
       line-height:1.4;
-      margin-top:20px;
+    }
+
+    /* Bild so groß wie möglich, aber NICHT zuschneiden */
+    .success img{
+      display:block;
+      margin: 0 auto;
+      width: auto;          /* Original-Proportionen */
+      height: auto;
+      max-width: 95%;       /* so groß wie möglich im Card */
+      max-height: 58vh;     /* damit Text noch passt */
+      border-radius:14px;
+      box-shadow:0 18px 40px rgba(0,0,0,.35);
+      object-fit: contain;
+      background: rgba(255,255,255,.04);
+    }
+
+    @media (max-width: 520px){
+      .success img{ max-height: 52vh; }
+      h1{ font-size:26px; }
     }
   </style>
 </head>
@@ -141,12 +173,18 @@
       <button id="no">Nein</button>
 
       <div class="success" id="success">
-        <h2>Wir haben ein Date!!!</h2>
-        <p>
-          Super Askim benim, genau das hab ich erwartet.<br>
-          Ich habe um 19:30 Uhr reserviert in einem schönen Restaurant.<br>
-          Danach tatli yemeye gidiyoruz (nicht du, auch wenn du auch tatli bist).
-        </p>
+        <div class="success-inner">
+          <h2>Wir haben ein Date!!!</h2>
+
+          <!-- Bild: liegt im selben Ordner wie index.html -->
+          <img src="mirodilay.png" alt="Miro & Dilay">
+
+          <p class="text">
+            Super Askim benim, genau das hab ich erwartet.<br>
+            Ich habe um 19:30 Uhr reserviert in einem schönen Restaurant.<br>
+            Danach tatli yemeye gidiyoruz (nicht du, auch wenn du auch tatli bist).
+          </p>
+        </div>
       </div>
     </div>
 
@@ -161,7 +199,7 @@ let startTime = Date.now();
 let tries = 0;
 const score = document.getElementById("score");
 
-setInterval(() => {
+const timerId = setInterval(() => {
   const sec = Math.floor((Date.now() - startTime) / 1000);
   const m = String(Math.floor(sec / 60)).padStart(2,"0");
   const s = String(sec % 60).padStart(2,"0");
@@ -170,6 +208,7 @@ setInterval(() => {
 
 /* =======================
    BUTTON LOGIK
+   (Nur bei Klick/Touch auf NEIN passiert was)
 ======================= */
 const noTexts = [
   "Nein",
@@ -197,40 +236,57 @@ const success = document.getElementById("success");
 
 let scale = 1;
 
-function moveNo(){
+function moveNoOnDemand(){
   tries++;
 
+  // Easter Egg nach 10x "Nein"
   if(tries >= 10){
     noBtn.style.display = "none";
     hint.textContent = "Okay, du hast gewonnen… aber sag trotzdem Ja";
+    // Ja wird zusätzlich sehr groß, damit es klar ist
+    yesBtn.style.transform = "scale(3)";
     return;
   }
 
+  // Texte wechseln NUR wenn sie wirklich auf Nein drückt
   noBtn.textContent = noTexts[tries % noTexts.length];
   hint.textContent = hints[tries % hints.length];
 
+  // Ja wächst
   scale += 0.15;
   yesBtn.style.transform = `scale(${Math.min(scale,3)})`;
 
+  // Nein springt auf neue Position (aber nur nach Klick)
   const maxX = arena.clientWidth - noBtn.offsetWidth - 10;
   const maxY = arena.clientHeight - noBtn.offsetHeight - 10;
 
-  noBtn.style.left = Math.random() * maxX + "px";
-  noBtn.style.top = Math.random() * maxY + "px";
+  const x = Math.random() * Math.max(10, maxX);
+  const y = Math.random() * Math.max(10, maxY);
+
+  noBtn.style.left = x + "px";
+  noBtn.style.top = y + "px";
+  noBtn.style.transform = "translate(0,0)";
 }
 
-noBtn.addEventListener("mouseover", moveNo);
-noBtn.addEventListener("click", moveNo);
-noBtn.addEventListener("touchstart", e => {
+// Wichtig: KEIN mouseover mehr!
+noBtn.addEventListener("click", (e) => {
   e.preventDefault();
-  moveNo();
-},{passive:false});
+  moveNoOnDemand();
+});
+
+noBtn.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  moveNoOnDemand();
+}, {passive:false});
 
 /* =======================
    JA = ERFOLG
+   Hint verschwindet, damit unten nix mehr steht
 ======================= */
 yesBtn.addEventListener("click", () => {
   success.style.display = "block";
+  hint.style.display = "none";      // <- dein Wunsch
+  clearInterval(timerId);           // Timer stoppt (Score bleibt stehen)
 });
 </script>
 </body>
